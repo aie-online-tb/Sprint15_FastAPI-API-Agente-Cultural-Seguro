@@ -48,12 +48,20 @@ T = TypeVar("T")
 
 def _con_timeout(fn: Callable[..., T], *args) -> T:
     """
-    Ejecuta fn en un hilo y corta si supera ASK_TIMEOUT_SECONDS.
+    Ejecuta fn en un hilo y corta la espera si supera ASK_TIMEOUT_SECONDS.
     Junior-simple: un ThreadPoolExecutor por llamada (no hace falta cola global).
+
+    Sin `with`: al salir de un `with`, el executor espera a que el hilo termine
+    (shutdown(wait=True)) y el 504 llegaría cuando acabe el turno, no al límite.
+    Con shutdown(wait=False) el 504 sale a tiempo. Python no puede matar el hilo:
+    el agente sigue trabajando en segundo plano hasta terminar (sigue gastando cuota).
     """
-    with ThreadPoolExecutor(max_workers=1) as pool:
-        future = pool.submit(fn, *args)
+    pool = ThreadPoolExecutor(max_workers=1)
+    future = pool.submit(fn, *args)
+    try:
         return future.result(timeout=config.ASK_TIMEOUT_SECONDS)
+    finally:
+        pool.shutdown(wait=False)
 
 
 @asynccontextmanager

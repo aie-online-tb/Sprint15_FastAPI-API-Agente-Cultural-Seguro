@@ -1,4 +1,4 @@
-![Cabecera](../../../../../06_AI_Agents_Engineering/Sprint_11/assets/cabecera_thebridge.png)
+![Cabecera](../assets/cabecera_thebridge.png)
 
 # Cliente Streamlit → agente cultural
 
